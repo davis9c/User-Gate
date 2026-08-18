@@ -37,6 +37,9 @@ class Filters extends BaseFilters
         'auth'          => \App\Filters\Auth::class,
         'apiKey'        => \App\Filters\ApiKeyAuth::class,
         'apiPermission' => \App\Filters\ApiPermissionFilter::class,
+        'accessToken' => \App\Filters\AccessTokenAuth::class,
+        'loginThrottle' => \App\Filters\LoginThrottle::class,
+        'userPermission' => \App\Filters\UserPermissionFilter::class,
     ];
 
     /**

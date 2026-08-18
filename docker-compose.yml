@@ -1,0 +1,37 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "8080:80"
+    environment:
+      CI_ENVIRONMENT: development
+      app.baseURL: http://localhost:8080/
+      app.forceGlobalSecureRequests: "false"
+      database.default.hostname: db
+      database.default.database: usergate
+      database.default.username: usergate
+      database.default.password: change_this_password
+      database.default.DBDriver: MySQLi
+      database.default.port: 3306
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: usergate
+      MYSQL_USER: usergate
+      MYSQL_PASSWORD: change_this_password
+      MYSQL_ROOT_PASSWORD: change_root_password
+    volumes:
+      - usergate_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pchange_root_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  usergate_mysql:
