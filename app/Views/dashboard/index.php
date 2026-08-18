@@ -28,6 +28,11 @@
             class="btn btn-primary">
             Manage Applications
         </a>
+        <a
+            href="<?= site_url('/api-documentation') ?>"
+            class="btn btn-primary">
+            API Documentation
+        </a>
     </div>
 </div>
 

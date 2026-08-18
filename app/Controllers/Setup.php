@@ -11,14 +11,7 @@ class Setup extends BaseController
 {
     public function index()
     {
-        $settingModel = new SystemSetting();
-
-        $installed = $settingModel
-            ->where('key', 'installation_status')
-            ->where('value', 'installed')
-            ->first();
-
-        if ($installed !== null) {
+        if ($this->isInstalled()) {
             return redirect()->to('/');
         }
 
@@ -27,14 +20,7 @@ class Setup extends BaseController
 
     public function install()
     {
-        $settingModel = new SystemSetting();
-
-        $installed = $settingModel
-            ->where('key', 'installation_status')
-            ->where('value', 'installed')
-            ->first();
-
-        if ($installed !== null) {
+        if ($this->isInstalled()) {
             return redirect()->to('/');
         }
 
@@ -53,11 +39,21 @@ class Setup extends BaseController
                 ->with('errors', $this->validator->getErrors());
         }
 
-        $db = db_connect();
+        try {
+            $db = $this->bootstrapDatabase();
+        } catch (\Throwable $exception) {
+            log_message('error', '[Setup] Database bootstrap failed: ' . $exception->getMessage());
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Database belum siap. Periksa konfigurasi database dan privilege CREATE, ALTER, INDEX, INSERT, UPDATE, DELETE, SELECT, serta REFERENCES untuk user database.');
+        }
 
         $userModel       = new User();
         $credentialModel = new UserCredential();
         $roleModel       = new UserRole();
+        $settingModel    = new SystemSetting();
 
         $userId = sprintf(
             '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
@@ -110,5 +106,71 @@ class Setup extends BaseController
         return redirect()
             ->to('/')
             ->with('success', 'UserGateway berhasil di-install.');
+    }
+
+    private function isInstalled(): bool
+    {
+        try {
+            return (new SystemSetting())
+                ->where('key', 'installation_status')
+                ->where('value', 'installed')
+                ->first() !== null;
+        } catch (\Throwable $exception) {
+            // A fresh instance has no database or tables yet; Setup will create them on submit.
+            return false;
+        }
+    }
+
+    /**
+     * Creates the configured MySQL database when needed, applies all migrations,
+     * and seeds the baseline API permissions. No Spark command is required.
+     */
+    private function bootstrapDatabase()
+    {
+        $config = config('Database')->default;
+
+        if (($config['DBDriver'] ?? '') !== 'MySQLi') {
+            throw new \RuntimeException('Setup otomatis hanya mendukung MySQLi.');
+        }
+
+        $database = (string) ($config['database'] ?? '');
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $database)) {
+            throw new \RuntimeException('Nama database harus menggunakan huruf, angka, atau underscore.');
+        }
+
+        $connection = new \mysqli(
+            (string) ($config['hostname'] ?? 'localhost'),
+            (string) ($config['username'] ?? ''),
+            (string) ($config['password'] ?? ''),
+            '',
+            (int) ($config['port'] ?? 3306)
+        );
+
+        $connection->set_charset('utf8mb4');
+        $existing = $connection->query(
+            "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '" .
+            $connection->real_escape_string($database) . "'"
+        );
+
+        if ($existing === false || $existing->num_rows === 0) {
+            $connection->query(
+                'CREATE DATABASE `' . $database . '` ' .
+                'CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'
+            );
+        }
+        if ($existing instanceof \mysqli_result) {
+            $existing->free();
+        }
+        $connection->close();
+        $connection->close();
+
+        $db = db_connect();
+        service('migrations')->latest();
+
+        if ($db->table('api_permissions')->countAllResults() === 0) {
+            \Config\Database::seeder()->call('ApiPermissionSeeder');
+        }
+
+        return $db;
     }
 }

@@ -13,7 +13,7 @@ class RolePermission
 
     public function has(string $permission): bool
     {
-        $userId = session()->get('user_id');
+        $userId = service('request')->authUser['id'] ?? session()->get('user_id');
 
         if (empty($userId)) {
             return false;

@@ -29,7 +29,8 @@
 
                 <div class="alert alert-info">
                     <strong>Selamat datang.</strong>
-                    Silakan buat akun Super Admin untuk memulai instalasi UserGateway.
+                    Silakan buat akun Super Admin. Database, tabel, dan permission API dasar
+                    akan dibuat otomatis saat tombol install ditekan.
                 </div>
 
                 <?php if (session()->getFlashdata('error')): ?>

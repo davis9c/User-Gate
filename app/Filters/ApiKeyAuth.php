@@ -29,8 +29,11 @@ class ApiKeyAuth implements FilterInterface
         $keyHash = hash('sha256', $apiKey);
 
         $record = $model
-            ->where('key_hash', $keyHash)
-            ->where('status', 'ACTIVE')
+            ->select('api_keys.*')
+            ->join('applications', 'applications.id = api_keys.application_id')
+            ->where('api_keys.key_hash', $keyHash)
+            ->where('api_keys.status', 'ACTIVE')
+            ->where('applications.status', 'ACTIVE')
             ->first();
 
         if (!$record) {

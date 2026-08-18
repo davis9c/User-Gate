@@ -1,68 +1,115 @@
-# CodeIgniter 4 Application Starter
+# UserGate
 
-## What is CodeIgniter?
+UserGate adalah layanan pusat untuk mengelola identitas pengguna dan akses API. Aplikasi ini membantu tim menyediakan satu tempat untuk membuat user, mengelola status akun, membuat application/API key, dan mengamankan integrasi antar aplikasi.
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+## Yang dapat dilakukan
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+- Membuat dan mengelola user beserta password yang tersimpan sebagai hash.
+- Mengelola application, API key, dan permission API per application.
+- Login API dengan API key, access token, refresh token, endpoint current user, dan logout.
+- Membatasi percobaan login, mencatat event audit, dan mencabut token saat logout.
+- Menyediakan halaman dokumentasi API di `/api-documentation`, dengan contoh request/response dan tombol copy.
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+## Cara paling cepat: Docker
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+Prasyarat: Docker Engine dan Docker Compose.
 
-## Installation & updates
+```bash
+git clone <repository-url> usergate
+cd usergate
+docker compose up --build -d
+```
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+Buka [http://localhost:8080/setup](http://localhost:8080/setup), isi data Super Admin, lalu tekan **Install UserGateway**.
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+Pada langkah tersebut UserGate akan otomatis:
 
-## Setup
+1. Memastikan database tersedia.
+2. Menjalankan seluruh migration.
+3. Menambahkan permission API dasar (`user.read`, `user.create`, `user.update`, dan `user.delete`).
+4. Membuat akun Super Admin pertama.
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+Tidak perlu menjalankan `php spark migrate` atau seeder secara manual. Untuk menghentikan container:
 
-## Important Change with index.php
+```bash
+docker compose down
+```
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+Data MySQL tetap tersimpan di Docker volume `usergate_mysql`. Untuk menghapus data lokal sepenuhnya, jalankan `docker compose down -v`.
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+> Ganti password contoh di `docker-compose.yml` sebelum menjalankan aplikasi di lingkungan selain lokal.
 
-**Please** read the user guide for a better explanation of how CI4 works!
+## Instalasi tanpa Docker
 
-## Repository Management
+Prasyarat: PHP 8.1+, Composer, MySQL 8+ (atau MariaDB setara), serta ekstensi PHP `intl`, `mbstring`, dan `mysqli`.
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+```bash
+git clone <repository-url> usergate
+cd usergate
+composer install --no-dev --optimize-autoloader
+cp .env.example .env
+```
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+Ubah bagian database pada `.env` sesuai server Anda:
 
-## Server Requirements
+```ini
+database.default.hostname = localhost
+database.default.database = usergate
+database.default.username = usergate
+database.default.password = ganti_dengan_password_aman
+database.default.DBDriver = MySQLi
+database.default.port = 3306
+```
 
-PHP version 8.1 or higher is required, with the following extensions installed:
+Pastikan web server mengarah ke folder `public/`, lalu buka `https://domain-anda/setup`. Form Setup akan membuat database bila belum ada, menjalankan migration dan seeding, kemudian membuat Super Admin.
 
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+Untuk pengembangan lokal tanpa web server:
 
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - If you are still using PHP 7.4 or 8.0, you should upgrade immediately.
-> - The end of life date for PHP 8.1 will be December 31, 2025.
+```bash
+php spark serve
+```
 
-Additionally, make sure that the following extensions are enabled in your PHP:
+Lalu buka `http://localhost:8080/setup`.
 
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+## MySQL: user database dan privilege dasar
+
+Jalankan sebagai MySQL administrator. Contoh ini memungkinkan UserGate membuat database otomatis apabila belum ada:
+
+```sql
+CREATE USER 'usergate'@'%' IDENTIFIED BY 'ganti_dengan_password_aman';
+GRANT CREATE ON *.* TO 'usergate'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES
+ON usergate.* TO 'usergate'@'%';
+FLUSH PRIVILEGES;
+```
+
+Jika database dibuat terlebih dahulu oleh administrator, gunakan privilege yang lebih terbatas berikut (tanpa global `CREATE`):
+
+```sql
+CREATE DATABASE usergate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'usergate'@'%' IDENTIFIED BY 'ganti_dengan_password_aman';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES
+ON usergate.* TO 'usergate'@'%';
+FLUSH PRIVILEGES;
+```
+
+Ganti host `%` dengan hostname atau IP aplikasi untuk produksi. Jangan memakai user `root` sebagai kredensial aplikasi.
+
+## Setelah instalasi
+
+1. Login ke dashboard dengan akun Super Admin yang dibuat pada Setup.
+2. Buat **Application**.
+3. Buat **API Key** untuk application tersebut dan atur permission-nya.
+4. Gunakan halaman [API Documentation](/api-documentation) untuk contoh integrasi REST API.
+
+Endpoint autentikasi memakai `X-API-Key`; endpoint `/auth/me` dan `/auth/logout` juga memerlukan `Authorization: Bearer <access_token>`.
+
+## Konfigurasi produksi
+
+- Set `CI_ENVIRONMENT = production`.
+- Gunakan HTTPS dan set `app.forceGlobalSecureRequests = true`.
+- Simpan `.env` hanya di server; file ini tidak boleh di-commit.
+- Ganti seluruh password contoh dan batasi akses user MySQL sesuai host aplikasi.
+- Buat backup database sebelum upgrade aplikasi.
+
+Dokumentasi kontrak API dan checklist deployment lebih rinci tersedia di [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) dan [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).

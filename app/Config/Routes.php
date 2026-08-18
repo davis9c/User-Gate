@@ -11,6 +11,7 @@ use CodeIgniter\Router\RouteCollection;
 // ============================================================
 
 $routes->get('/', 'Home::index');
+$routes->get('api-documentation', 'Home::apiDocumentation');
 
 $routes->get('setup', 'Setup::index');
 $routes->post('setup/install', 'Setup::install');
@@ -202,6 +203,14 @@ $routes->group(
     'api/v1',
     ['filter' => 'apiKey'],
     static function ($routes) {
+
+        $routes->post('auth/login', 'Api\\Auth::login', ['filter' => 'loginThrottle']);
+        $routes->post('auth/refresh', 'Api\\Auth::refresh');
+
+        $routes->group('auth', ['filter' => 'accessToken'], static function ($routes) {
+            $routes->get('me', 'Api\\Auth::me');
+            $routes->post('logout', 'Api\\Auth::logout');
+        });
 
         // Users - Read
         $routes->get(
