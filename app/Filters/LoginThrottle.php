@@ -10,7 +10,7 @@ class LoginThrottle implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        $key = 'login:' . $request->getIPAddress();
+        $key = 'login_' . hash('sha256', $request->getIPAddress());
         if (!service('throttler')->check($key, 5, MINUTE)) {
             return service('response')->setStatusCode(429)->setHeader('Retry-After', '60')->setJSON([
                 'status' => false,

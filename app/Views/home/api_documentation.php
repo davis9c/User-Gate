@@ -56,9 +56,19 @@ Content-Type: application/json
     "token_type": "Bearer",
     "expires_in": 900,
     "refresh_token": "REFRESH_TOKEN",
-    "refresh_expires_in": 2592000
+    "refresh_expires_in": 2592000,
+    "user": {
+      "id": "uuid",
+      "username": "budi",
+      "email": "budi@example.com",
+      "full_name": "Budi Santoso",
+      "status": "ACTIVE",
+      "roles": ["SUPER_ADMIN"],
+      "is_super_admin": true
+    }
   }
 }</pre><button class="copy" type="button">Copy</button></div>
+                    <p>Objek <code>user</code> berisi daftar role dan penanda <code>is_super_admin</code> (true bila user memegang role <code>SUPER_ADMIN</code>).</p>
                 </div></div>
                 <div class="endpoint"><div class="endpoint-head"><span class="method post">POST</span> /auth/refresh</div><div class="endpoint-body">
                     <p>Gunakan hanya untuk memperbarui access token. Refresh token lama tidak dapat dipakai lagi setelah request sukses.</p>
@@ -70,7 +80,22 @@ Content-Type: application/json
                     <div class="code-wrap"><span class="code-label">Response · 200 OK</span><pre>{
   "status": true,
   "message": "Token refreshed successfully.",
-  "data": { "access_token": "NEW_ACCESS_TOKEN", "token_type": "Bearer", "expires_in": 900, "refresh_token": "NEW_REFRESH_TOKEN", "refresh_expires_in": 2592000 }
+  "data": {
+    "access_token": "NEW_ACCESS_TOKEN",
+    "token_type": "Bearer",
+    "expires_in": 900,
+    "refresh_token": "NEW_REFRESH_TOKEN",
+    "refresh_expires_in": 2592000,
+    "user": {
+      "id": "uuid",
+      "username": "budi",
+      "email": "budi@example.com",
+      "full_name": "Budi Santoso",
+      "status": "ACTIVE",
+      "roles": ["SUPER_ADMIN"],
+      "is_super_admin": true
+    }
+  }
 }</pre><button class="copy" type="button">Copy</button></div>
                 </div></div>
                 <div class="endpoint"><div class="endpoint-head"><span class="method post">POST</span> /auth/logout</div><div class="endpoint-body">
@@ -89,7 +114,15 @@ Authorization: Bearer ACCESS_TOKEN</pre><button class="copy" type="button">Copy<
                 <div class="code-wrap"><span class="code-label">Response · 200 OK</span><pre>{
   "status": true,
   "message": "Current user retrieved successfully.",
-  "data": { "id": "uuid", "username": "budi", "email": "budi@example.com", "full_name": "Budi Santoso", "status": "ACTIVE" }
+  "data": {
+    "id": "uuid",
+    "username": "budi",
+    "email": "budi@example.com",
+    "full_name": "Budi Santoso",
+    "status": "ACTIVE",
+    "roles": ["SUPER_ADMIN"],
+    "is_super_admin": true
+  }
 }</pre><button class="copy" type="button">Copy</button></div>
             </div></div></section>
             <section id="users"><h2>Users API</h2><p>Endpoint ini membutuhkan API key aktif dengan permission sesuai.</p>

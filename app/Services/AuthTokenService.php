@@ -55,7 +55,10 @@ class AuthTokenService
         }
         $model->update($record['id'], ['revoked_at' => date('Y-m-d H:i:s')]);
         $user = (new \App\Models\User())->find($record['user_id']);
-        return $user && $user['status'] === 'ACTIVE' ? $this->issue($user, $apiKey, $ipAddress, $userAgent) : null;
+        if (!$user || $user['status'] !== 'ACTIVE') {
+            return null;
+        }
+        return ['tokens' => $this->issue($user, $apiKey, $ipAddress, $userAgent), 'user' => $user];
     }
 
     public function revoke(string $id): void
