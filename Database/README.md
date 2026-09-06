@@ -1,15 +1,17 @@
 # Database UserGate
 
-Panduan ini digunakan jika server MySQL/MariaDB sudah tersedia. UserGate menggunakan database eksternal dan tidak membuat container database sendiri.
+Panduan ini digunakan jika server MySQL/MariaDB sudah tersedia. UserGate
+menggunakan database eksternal dan tidak membuat container database sendiri.
+Nilai di bawah adalah contoh; simpan credential sebenarnya hanya di environment.
 
 ## Konfigurasi default aplikasi
 
 Nilai yang digunakan aplikasi:
 
 ```text
-Database : db_am_usergate
-User     : usg
-Password : usg11
+Database : <database-name>
+User     : <database-user>
+Password : <database-password>
 Port     : 3306
 Driver   : MySQLi
 ```
@@ -17,10 +19,10 @@ Driver   : MySQLi
 Host database diatur pada file environment aplikasi:
 
 ```ini
-database.default.hostname = 10.10.10.12
-database.default.database = db_am_usergate
-database.default.username = usg
-database.default.password = usg11
+database.default.hostname = <database-host>
+database.default.database = <database-name>
+database.default.username = <database-user>
+database.default.password = <database-password>
 database.default.DBDriver = MySQLi
 database.default.port = 3306
 ```
@@ -30,7 +32,7 @@ database.default.port = 3306
 Jalankan perintah berikut dari server database atau mesin yang dapat mengaksesnya:
 
 ```bash
-mysql -h 10.10.10.12 -u root -p
+mysql -h <database-host> -u root -p
 ```
 
 Ganti `root` dengan user administrator database Anda jika berbeda.
@@ -38,7 +40,7 @@ Ganti `root` dengan user administrator database Anda jika berbeda.
 ## 2. Membuat database
 
 ```sql
-CREATE DATABASE IF NOT EXISTS `db_am_usergate`
+CREATE DATABASE IF NOT EXISTS `<database-name>`
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 ```
@@ -48,15 +50,15 @@ CREATE DATABASE IF NOT EXISTS `db_am_usergate`
 Akun berikut dapat digunakan dari host mana pun yang diizinkan oleh firewall database:
 
 ```sql
-CREATE USER IF NOT EXISTS 'usg'@'%' IDENTIFIED BY 'usg11';
-ALTER USER 'usg'@'%' IDENTIFIED BY 'usg11';
+CREATE USER IF NOT EXISTS '<database-user>'@'%' IDENTIFIED BY '<database-password>';
+ALTER USER '<database-user>'@'%' IDENTIFIED BY '<database-password>';
 ```
 
 Jika aplikasi dan database berada pada jaringan internal, lebih aman mengganti `%` dengan alamat IP server aplikasi:
 
 ```sql
-CREATE USER IF NOT EXISTS 'usg'@'10.10.10.15' IDENTIFIED BY 'usg11';
-ALTER USER 'usg'@'10.10.10.15' IDENTIFIED BY 'usg11';
+CREATE USER IF NOT EXISTS '<database-user>'@'<application-host>' IDENTIFIED BY '<database-password>';
+ALTER USER '<database-user>'@'<application-host>' IDENTIFIED BY '<database-password>';
 ```
 
 ## 4. Memberi privilege
@@ -67,7 +69,7 @@ Berikan privilege pada database UserGate:
 GRANT SELECT, INSERT, UPDATE, DELETE,
       CREATE, ALTER, DROP, INDEX, REFERENCES,
       CREATE TEMPORARY TABLES, LOCK TABLES
-ON `db_am_usergate`.* TO 'usg'@'%';
+ON `<database-name>`.* TO '<database-user>'@'%';
 
 FLUSH PRIVILEGES;
 ```
@@ -78,7 +80,7 @@ Jika menggunakan user dengan host khusus, jalankan grant untuk host tersebut:
 GRANT SELECT, INSERT, UPDATE, DELETE,
       CREATE, ALTER, DROP, INDEX, REFERENCES,
       CREATE TEMPORARY TABLES, LOCK TABLES
-ON `db_am_usergate`.* TO 'usg'@'10.10.10.15';
+ON `<database-name>`.* TO '<database-user>'@'<application-host>';
 
 FLUSH PRIVILEGES;
 ```
@@ -90,17 +92,17 @@ Privilege tersebut diperlukan untuk menjalankan migration dan menyimpan data apl
 ```sql
 SELECT User, Host
 FROM mysql.user
-WHERE User = 'usg';
+WHERE User = '<database-user>';
 ```
 
 ```sql
-SHOW GRANTS FOR 'usg'@'%';
+SHOW GRANTS FOR '<database-user>'@'%';
 ```
 
 Pastikan hasilnya mencakup akses ke:
 
 ```text
-`db_am_usergate`.*
+`<database-name>`.*
 ```
 
 ## 6. Menguji koneksi dari server aplikasi
@@ -108,14 +110,8 @@ Pastikan hasilnya mencakup akses ke:
 Dari server yang menjalankan UserGate:
 
 ```bash
-nc -vz 10.10.10.12 3306
-mysql -h 10.10.10.12 -u usr -p db_am_usergate
-```
-
-Saat diminta password, masukkan:
-
-```text
-usr11
+nc -vz <database-host> 3306
+mysql -h <database-host> -u <database-user> -p <database-name>
 ```
 
 Jangan menulis password pada command line di lingkungan produksi karena dapat terlihat pada history shell atau daftar proses.
@@ -138,9 +134,9 @@ Kedua file harus menggunakan koneksi database yang sama jika menjalankan server 
 
 ## Catatan keamanan
 
-- Password `usg11` adalah nilai awal dan sebaiknya segera diganti.
+- Gunakan password kuat dan simpan hanya di environment/secret manager.
 - Jangan commit `Docker/.env` atau `App/.env` ke Git.
 - Jangan menggunakan user `root` sebagai user aplikasi.
 - Hindari grant `ON *.*` untuk user aplikasi.
-- Gunakan host spesifik seperti `10.10.10.15` daripada `%` jika aturan jaringan memungkinkan.
+- Gunakan host aplikasi spesifik daripada `%` jika aturan jaringan memungkinkan.
 - Pastikan firewall database hanya membuka port `3306` untuk server aplikasi yang diperlukan.

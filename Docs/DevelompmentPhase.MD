@@ -1,5 +1,9 @@
 # UserGateway — Development Phases
 
+Dokumen ini adalah roadmap. Status fitur aktual dan kontrak endpoint berada di
+[REST API](API.md) dan [Authentication](../App/docs/AUTHENTICATION.md); roadmap
+tidak menggantikan dokumentasi operasional tersebut.
+
 ## Tujuan
 
 UserGateway adalah pusat **identity, authentication, dan SSO** untuk seluruh aplikasi.

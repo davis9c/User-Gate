@@ -1,115 +1,24 @@
 # UserGate
 
-UserGate adalah layanan pusat untuk mengelola identitas pengguna dan akses API. Aplikasi ini membantu tim menyediakan satu tempat untuk membuat user, mengelola status akun, membuat application/API key, dan mengamankan integrasi antar aplikasi.
+UserGate adalah layanan pusat untuk identity, authentication, application registry,
+API key, dan audit keamanan.
 
-## Yang dapat dilakukan
+## Mulai cepat
 
-- Membuat dan mengelola user beserta password yang tersimpan sebagai hash.
-- Mengelola application, API key, dan permission API per application.
-- Login API dengan API key, access token, refresh token, endpoint current user, dan logout.
-- Membatasi percobaan login, mencatat event audit, dan mencabut token saat logout.
-- Menyediakan halaman dokumentasi API di `/api-documentation`, dengan contoh request/response dan tombol copy.
+- [Instalasi dan overview](Docs/README.md)
+- [Menjalankan Docker](Docker/README.md)
+- [Menyiapkan MySQL eksternal](Database/README.md)
+- [Instalasi aplikasi dari source](Docs/README.md#instalasi-dari-source)
 
-## Cara paling cepat: Docker
+Setup web otomatis menjalankan migration dan seeding, kemudian membuat akun
+`SUPER_ADMIN` pertama. Jangan commit `Docker/.env` atau `App/.env`.
 
-Prasyarat: Docker Engine dan Docker Compose.
+## Dokumentasi
 
-```bash
-git clone <repository-url> usergate
-cd usergate
-docker compose --env-file Docker/.env -f Docker/docker-compose.yml up --build -d
-```
-
-Buka `http://usergate.sandalgurun.web.id/setup`, isi data Super Admin, lalu tekan **Install UserGateway**.
-
-Pada langkah tersebut UserGate akan otomatis:
-
-1. Memastikan database tersedia.
-2. Menjalankan seluruh migration.
-3. Menambahkan permission API dasar (`user.read`, `user.create`, `user.update`, dan `user.delete`).
-4. Membuat akun Super Admin pertama.
-
-Tidak perlu menjalankan `php spark migrate` atau seeder secara manual. Untuk menghentikan container:
-
-```bash
-docker compose --env-file Docker/.env -f Docker/docker-compose.yml down
-```
-
-Database menggunakan server eksternal yang dikonfigurasi di `Docker/.env`.
-
-> Jangan commit `Docker/.env` atau `App/.env`. Gunakan file `.env.example` sebagai template.
-
-## Instalasi tanpa Docker
-
-Prasyarat: PHP 8.1+, Composer, MySQL 8+ (atau MariaDB setara), serta ekstensi PHP `intl`, `mbstring`, dan `mysqli`.
-
-```bash
-git clone <repository-url> usergate
-cd usergate/App
-composer install --no-dev --optimize-autoloader
-cp .env.example .env
-```
-
-Ubah bagian database pada `.env` sesuai server Anda:
-
-```ini
-database.default.hostname = localhost
-database.default.database = usergate
-database.default.username = usergate
-database.default.password = ganti_dengan_password_aman
-database.default.DBDriver = MySQLi
-database.default.port = 3306
-```
-
-Pastikan web server mengarah ke folder `public/`, lalu buka `https://domain-anda/setup`. Form Setup akan membuat database bila belum ada, menjalankan migration dan seeding, kemudian membuat Super Admin.
-
-Untuk pengembangan lokal tanpa web server:
-
-```bash
-php spark serve
-```
-
-Lalu buka `http://localhost:8080/setup`.
-
-## MySQL: user database dan privilege dasar
-
-Jalankan sebagai MySQL administrator. Contoh ini memungkinkan UserGate membuat database otomatis apabila belum ada:
-
-```sql
-CREATE USER 'usergate'@'%' IDENTIFIED BY 'ganti_dengan_password_aman';
-GRANT CREATE ON *.* TO 'usergate'@'%';
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES
-ON usergate.* TO 'usergate'@'%';
-FLUSH PRIVILEGES;
-```
-
-Jika database dibuat terlebih dahulu oleh administrator, gunakan privilege yang lebih terbatas berikut (tanpa global `CREATE`):
-
-```sql
-CREATE DATABASE usergate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'usergate'@'%' IDENTIFIED BY 'ganti_dengan_password_aman';
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES
-ON usergate.* TO 'usergate'@'%';
-FLUSH PRIVILEGES;
-```
-
-Ganti host `%` dengan hostname atau IP aplikasi untuk produksi. Jangan memakai user `root` sebagai kredensial aplikasi.
-
-## Setelah instalasi
-
-1. Login ke dashboard dengan akun Super Admin yang dibuat pada Setup.
-2. Buat **Application**.
-3. Buat **API Key** untuk application tersebut dan atur permission-nya.
-4. Gunakan halaman [API Documentation](/api-documentation) untuk contoh integrasi REST API.
-
-Endpoint autentikasi memakai `X-API-Key`; endpoint `/auth/me` dan `/auth/logout` juga memerlukan `Authorization: Bearer <access_token>`.
-
-## Konfigurasi produksi
-
-- Set `CI_ENVIRONMENT = production`.
-- Gunakan HTTPS dan set `app.forceGlobalSecureRequests = true`.
-- Simpan `.env` hanya di server; file ini tidak boleh di-commit.
-- Ganti seluruh password contoh dan batasi akses user MySQL sesuai host aplikasi.
-- Buat backup database sebelum upgrade aplikasi.
-
-Dokumentasi kontrak API dan checklist deployment lebih rinci tersedia di [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) dan [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+- [REST API](Docs/API.md)
+- [Authentication, token, dan RBAC](App/docs/AUTHENTICATION.md)
+- [Deployment produksi](App/docs/DEPLOYMENT.md)
+- [Release checklist](App/docs/RELEASE_CHECKLIST.md)
+- [Arsitektur sistem](Docs/RancanganSistem.MD)
+- [Development phases](Docs/DevelompmentPhase.MD)
+- [Testing](App/tests/README.md)

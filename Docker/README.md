@@ -1,6 +1,7 @@
 # Docker UserGate
 
-Panduan menjalankan UserGate menggunakan Docker Compose.
+Panduan menjalankan UserGate menggunakan Docker Compose. Provisioning database
+dibahas terpisah di [Database README](../Database/README.md).
 
 ## 1. Prasyarat
 
@@ -66,13 +67,13 @@ Jika template belum tersedia, buat `Docker/.env` dengan konfigurasi berikut lalu
 ```ini
 CI_ENVIRONMENT = development
 APP_PORT = 8081
-app.baseURL = 'http://usergate.sandalgurun.web.id/'
+app.baseURL = 'http://localhost:8081/'
 app.forceGlobalSecureRequests = false
 
-database.default.hostname = 10.10.10.12
-database.default.database = db_am_usergate
-database.default.username = usg
-database.default.password = usg11
+database.default.hostname = <database-host>
+database.default.database = <database-name>
+database.default.username = <database-user>
+database.default.password = <database-password>
 database.default.DBDriver = MySQLi
 database.default.port = 3306
 ```
@@ -85,10 +86,11 @@ Konfigurasi penting:
 - `database.default.port`: port MySQL, biasanya `3306`.
 - `CI_ENVIRONMENT=development`: menampilkan detail error saat pengembangan.
 
-Pastikan server Docker dapat terhubung ke database:
+Pastikan server Docker dapat terhubung ke database. Detail pembuatan user,
+database, dan privilege ada di [Database README](../Database/README.md):
 
 ```bash
-nc -vz 10.10.10.12 3306
+nc -vz <database-host> 3306
 ```
 
 ## 4. Validasi konfigurasi
@@ -125,13 +127,13 @@ docker compose --env-file .env ps
 Buka aplikasi melalui URL yang sesuai dengan `app.baseURL`, atau langsung melalui port host:
 
 ```text
-http://10.10.10.15:8081/
+http://localhost:8081/
 ```
 
 Halaman setup:
 
 ```text
-http://10.10.10.15:8081/setup
+http://localhost:8081/setup
 ```
 
 ## 6. Melihat log

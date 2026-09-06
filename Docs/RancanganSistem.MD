@@ -1,5 +1,11 @@
 # UserGateway — Rancangan Sistem
 
+> Dokumen ini menjelaskan arah arsitektur dan boundary jangka panjang. Kontrak
+> runtime yang sudah tersedia saat ini dirujuk dari [REST API](API.md) dan
+> [Authentication](../App/docs/AUTHENTICATION.md). Bagian RBAC UserGateway
+> mencerminkan implementasi dashboard saat ini; authorization bisnis aplikasi
+> tetap berada di aplikasi masing-masing.
+
 ## 1. Konsep
 
 **UserGateway** adalah pusat identitas dan autentikasi untuk seluruh aplikasi yang dikembangkan.
@@ -59,7 +65,10 @@ UserGateway bertanggung jawab atas:
 * Application Admin
 * Audit keamanan
 
-UserGateway **tidak bertanggung jawab** atas role dan permission bisnis aplikasi.
+UserGateway tidak bertanggung jawab atas role dan permission bisnis aplikasi.
+Untuk kebutuhan operasional dashboard, UserGateway saat ini memiliki role platform
+seperti `SUPER_ADMIN` dan relasi permission internal. Relasi ini bukan pengganti
+authorization bisnis pada aplikasi terintegrasi.
 
 ---
 
@@ -259,7 +268,9 @@ Dapat:
 
 ## 10. Role & Permission Aplikasi
 
-Role dan permission **tidak disimpan di UserGateway**.
+Role dan permission bisnis **tidak disimpan di UserGateway**. Role platform untuk
+administrasi UserGateway adalah pengecualian internal dan didokumentasikan di
+[Authentication](../App/docs/AUTHENTICATION.md).
 
 Contoh HRIS:
 
@@ -419,13 +430,12 @@ email_verifications
 audit_logs
 ```
 
-Tidak perlu:
+Authorization bisnis aplikasi tidak perlu dipindahkan ke tabel pusat seperti:
 
 ```text
-roles
-permissions
-user_roles
-role_permissions
+application_business_roles
+application_business_permissions
+application_user_roles
 user_application_access
 ```
 

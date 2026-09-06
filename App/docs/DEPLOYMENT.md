@@ -1,9 +1,33 @@
-# Production Deployment and Release Verification
+# Deployment Produksi
 
-1. Deploy application code without `.env`; configure database credentials, `app.baseURL`, production environment, HTTPS, and a writable cache/log directory on the server.
-2. Run `php spark migrate --all` once per environment. This creates `auth_tokens` and `audit_logs` in addition to the existing schema.
-3. Configure TLS at the web server and verify that HTTP redirects to HTTPS. Secure headers, cookies, CSRF (except the JSON API), and production error handling remain enabled by the application configuration.
-4. Create an active application and API key, then verify login, `/me`, refresh, logout, revoked-token rejection, API-key rejection, rate limit, RBAC permission grant/denial, and API permission grant/denial.
-5. Inspect `audit_logs` for `LOGIN_SUCCESS`, `LOGIN_FAILED`, `TOKEN_ISSUED`, `TOKEN_REVOKED`, `LOGOUT`, and `PERMISSION_DENIED`. Logs must contain neither passwords nor credentials.
+Panduan environment dan privilege database berada di [Docker README](../../Docker/README.md)
+dan [Database README](../../Database/README.md). Dokumen ini hanya mendefinisikan
+urutan verifikasi produksi.
 
-Release checklist: migrations applied, HTTPS confirmed, secrets exist only in the environment, application/API key states checked, authentication tests green, and a rollback backup exists. No release command or Git push is performed by this change.
+## Sebelum deploy
+
+1. Deploy source tanpa `.env` dan siapkan database, `app.baseURL`, environment
+	production, HTTPS, serta folder cache/log yang writable.
+2. Pastikan user database memiliki privilege migration yang dibutuhkan.
+3. Siapkan backup database dan prosedur rollback.
+
+## Deploy
+
+1. Build dan jalankan aplikasi sesuai [Docker README](../../Docker/README.md),
+	atau arahkan web server langsung ke `App/public`.
+2. Jalankan `php spark migrate --all` satu kali pada environment target jika
+	Setup belum pernah dijalankan.
+3. Buka `/setup` untuk instalasi baru. Setup akan menjalankan migration dan
+	seeding secara otomatis.
+4. Aktifkan HTTPS dan pastikan HTTP diarahkan ke HTTPS.
+
+## Verifikasi
+
+- Login, `/auth/me`, refresh, logout, dan penolakan token yang sudah dicabut.
+- Penolakan API key invalid/nonaktif dan rate limit login.
+- Grant/deny permission RBAC dan permission API key.
+- Event `LOGIN_SUCCESS`, `LOGIN_FAILED`, `TOKEN_ISSUED`, `TOKEN_REVOKED`,
+  `LOGOUT`, dan `PERMISSION_DENIED` tersedia di `audit_logs`.
+- Log tidak mengandung password, token, API key, atau credential.
+
+Gunakan [Release Checklist](RELEASE_CHECKLIST.md) sebagai checklist final.
