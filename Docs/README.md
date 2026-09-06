@@ -17,10 +17,10 @@ Prasyarat: Docker Engine dan Docker Compose.
 ```bash
 git clone <repository-url> usergate
 cd usergate
-docker compose --env-file Docker/.env -f Docker/docker-compose.yml up --build -d
+docker compose up --build -d
 ```
 
-Buka `http://usergate.sandalgurun.web.id/setup`, isi data Super Admin, lalu tekan **Install UserGateway**.
+Buka [http://localhost:8080/setup](http://localhost:8080/setup), isi data Super Admin, lalu tekan **Install UserGateway**.
 
 Pada langkah tersebut UserGate akan otomatis:
 
@@ -32,12 +32,12 @@ Pada langkah tersebut UserGate akan otomatis:
 Tidak perlu menjalankan `php spark migrate` atau seeder secara manual. Untuk menghentikan container:
 
 ```bash
-docker compose --env-file Docker/.env -f Docker/docker-compose.yml down
+docker compose down
 ```
 
-Database menggunakan server eksternal yang dikonfigurasi di `Docker/.env`.
+Data MySQL tetap tersimpan di Docker volume `usergate_mysql`. Untuk menghapus data lokal sepenuhnya, jalankan `docker compose down -v`.
 
-> Jangan commit `Docker/.env` atau `App/.env`. Gunakan file `.env.example` sebagai template.
+> Ganti password contoh di `docker-compose.yml` sebelum menjalankan aplikasi di lingkungan selain lokal.
 
 ## Instalasi tanpa Docker
 
@@ -45,7 +45,7 @@ Prasyarat: PHP 8.1+, Composer, MySQL 8+ (atau MariaDB setara), serta ekstensi PH
 
 ```bash
 git clone <repository-url> usergate
-cd usergate/App
+cd usergate
 composer install --no-dev --optimize-autoloader
 cp .env.example .env
 ```

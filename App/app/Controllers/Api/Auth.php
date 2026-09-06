@@ -69,8 +69,12 @@ class Auth extends ApiController
     private function userRoles(string $userId): array
     {
         return array_values(array_map(
-            static fn (array $row): string => $row['role'],
-            (new UserRole())->where('user_id', $userId)->findAll()
+            static fn (array $row): string => $row['code'],
+            (new UserRole())
+                ->select('roles.code')
+                ->join('roles', 'roles.id = user_roles.role_id')
+                ->where('user_roles.user_id', $userId)
+                ->findAll()
         ));
     }
 

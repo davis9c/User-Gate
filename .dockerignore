@@ -1,5 +1,17 @@
 .git
 .env
+App/.env
+App/vendor
+App/writable/cache
+App/writable/logs
+App/writable/session
+App/writable/debugbar
+App/tests
+Docs
+*.log
+php_errors.log
+Docker/.env
+.env
 vendor
 writable/cache
 writable/logs

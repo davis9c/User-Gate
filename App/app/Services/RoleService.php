@@ -52,16 +52,10 @@ class RoleService
 
         $existing = $this->userRoleModel
             ->where('user_id', $userId)
+            ->where('role_id', $roleId)
             ->first();
 
         if ($existing) {
-            $this->userRoleModel->update(
-                $existing['id'],
-                [
-                    'role_id' => $roleId,
-                ]
-            );
-
             return true;
         }
 

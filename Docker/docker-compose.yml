@@ -1,0 +1,9 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    volumes:
+      - ./.env:/var/www/html/.env:ro
+    ports:
+      - "${APP_PORT:-8081}:80"

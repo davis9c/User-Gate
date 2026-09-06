@@ -1,7 +1,7 @@
-FROM composer:2 AS vendor
+FROM composer:2.7 AS vendor
 
 WORKDIR /app
-COPY composer.json composer.lock ./
+COPY App/composer.json App/composer.lock ./
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-req=ext-intl
 
 FROM php:8.3-apache
@@ -13,10 +13,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www/html
-COPY . .
+COPY App/ .
 COPY --from=vendor /app/vendor ./vendor
-COPY docker/apache-vhost.conf /etc/apache2/sites-available/000-default.conf
+COPY Docker/apache-vhost.conf /etc/apache2/sites-available/000-default.conf
 
-RUN chown -R www-data:www-data writable
+RUN mkdir -p writable/cache writable/logs writable/session writable/uploads writable/debugbar \
+    && chown -R www-data:www-data writable
 
 EXPOSE 80

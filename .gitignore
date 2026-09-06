@@ -1,4 +1,80 @@
-#-------------------------
+# Operating system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*~
+.directory
+.Trashes
+
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+App/.env
+Docker/.env
+.vagrant
+Vagrantfile
+
+# CodeIgniter runtime files
+App/writable/cache/*
+!App/writable/cache/index.html
+App/writable/logs/*
+!App/writable/logs/index.html
+App/writable/session/*
+!App/writable/session/index.html
+App/writable/uploads/*
+!App/writable/uploads/index.html
+App/writable/debugbar/*
+!App/writable/debugbar/index.html
+App/php_errors.log
+
+# Test output
+App/tests/coverage*
+App/phpunit
+App/phpunit*.xml
+results/
+
+# Composer
+App/vendor/
+vendor/
+
+# Build output
+App/build/
+build/
+dist/
+nbbuild/
+nbdist/
+builds/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.iml
+*.sublime-workspace
+*.sublime-project
+*.tmlanguage.cache
+*.tmPreferences.cache
+.phpintel
+.php-version
+
+# Framework and documentation temporary files
+user_guide_src/build/
+user_guide_src/cilexer/build/
+user_guide_src/cilexer/dist/
+user_guide_src/cilexer/pycilexer.egg-info/
+_modules/
+api/
+
+# Local backups and database dumps
+*.sql
+*.sql.gz
+*backup*
+*.bak#-------------------------
 # Operating Specific Junk Files
 #-------------------------
 

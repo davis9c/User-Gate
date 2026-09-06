@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\SystemSetting;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\UserRole;
 use App\Models\UserCredential;
@@ -53,7 +54,12 @@ class Setup extends BaseController
         $userModel       = new User();
         $credentialModel = new UserCredential();
         $roleModel       = new UserRole();
+        $adminRole       = (new Role())->where('code', 'SUPER_ADMIN')->first();
         $settingModel    = new SystemSetting();
+
+        if (!$adminRole) {
+            return redirect()->back()->withInput()->with('error', 'Role SUPER_ADMIN belum tersedia.');
+        }
 
         $userId = sprintf(
             '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
@@ -86,7 +92,7 @@ class Setup extends BaseController
 
         $roleModel->insert([
             'user_id' => $userId,
-            'role'    => 'SUPER_ADMIN',
+            'role_id' => $adminRole['id'],
         ]);
 
         $settingModel->insert([
@@ -162,14 +168,11 @@ class Setup extends BaseController
             $existing->free();
         }
         $connection->close();
-        $connection->close();
 
         $db = db_connect();
         service('migrations')->latest();
 
-        if ($db->table('api_permissions')->countAllResults() === 0) {
-            \Config\Database::seeder()->call('ApiPermissionSeeder');
-        }
+        \Config\Database::seeder()->call('ApiPermissionSeeder');
 
         return $db;
     }
