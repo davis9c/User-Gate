@@ -2,7 +2,7 @@ CI_ENVIRONMENT = development
 app.baseURL = 'http://localhost:8080/'
 app.forceGlobalSecureRequests = false
 
-database.default.hostname = localhost
+database.default.hostname = host.docker.internal
 database.default.database = usergate
 database.default.username = usergate
 database.default.password = change_this_password

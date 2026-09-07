@@ -37,7 +37,9 @@ cp .env.example .env
 php spark serve
 ```
 
-Buka `http://localhost:8080/setup`. Setup akan menjalankan migration dan seeding
-secara otomatis, lalu membuat akun `SUPER_ADMIN` pertama.
+Buat database dan user aplikasi lebih dahulu sesuai [panduan database](../Database/README.md),
+lalu buka `http://localhost:8080/setup`. Setup akan menjalankan migration dan seeding
+secara otomatis, lalu membuat akun `SUPER_ADMIN` pertama. Jika database atau tabel belum siap,
+request aplikasi akan diarahkan ke halaman `/setup`.
 
 Untuk deployment database dan privilege, gunakan [Database README](../Database/README.md).

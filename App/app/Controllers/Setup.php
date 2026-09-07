@@ -144,33 +144,40 @@ class Setup extends BaseController
             throw new \RuntimeException('Nama database harus menggunakan huruf, angka, atau underscore.');
         }
 
-        $connection = new \mysqli(
-            (string) ($config['hostname'] ?? 'localhost'),
-            (string) ($config['username'] ?? ''),
-            (string) ($config['password'] ?? ''),
-            '',
-            (int) ($config['port'] ?? 3306)
-        );
-
-        $connection->set_charset('utf8mb4');
-        $existing = $connection->query(
-            "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '" .
-            $connection->real_escape_string($database) . "'"
-        );
-
-        if ($existing === false || $existing->num_rows === 0) {
-            $connection->query(
-                'CREATE DATABASE `' . $database . '` ' .
-                'CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'
+        $db = db_connect();
+        if (! $db->connect()) {
+            $error = $db->error();
+            throw new \RuntimeException(
+                'Koneksi database gagal: ' . ($error['message'] ?? 'kesalahan tidak diketahui')
             );
         }
-        if ($existing instanceof \mysqli_result) {
-            $existing->free();
-        }
-        $connection->close();
 
-        $db = db_connect();
+        if (! $db->query('SELECT 1')) {
+            $error = $db->error();
+            throw new \RuntimeException(
+                'Database `' . $database . '` belum tersedia atau tidak dapat diakses: '
+                    . ($error['message'] ?? 'kesalahan tidak diketahui')
+            );
+        }
+
         service('migrations')->latest();
+
+        foreach (
+            [
+                'migrations',
+                'system_settings',
+                'users',
+                'user_credentials',
+                'user_roles',
+                'roles',
+                'api_permissions',
+                'role_permissions',
+            ] as $table
+        ) {
+            if (! $db->tableExists($table)) {
+                throw new \RuntimeException('Migration tidak membuat tabel `' . $table . '`.');
+            }
+        }
 
         \Config\Database::seeder()->call('ApiPermissionSeeder');
 

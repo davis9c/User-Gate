@@ -29,8 +29,9 @@
 
                 <div class="alert alert-info">
                     <strong>Selamat datang.</strong>
-                    Silakan buat akun Super Admin. Database, tabel, dan permission API dasar
-                    akan dibuat otomatis saat tombol install ditekan.
+                    Pastikan database sudah dibuat administrator dan user aplikasi memiliki
+                    privilege migration. Tabel dan permission API dasar akan dibuat saat
+                    tombol install ditekan.
                 </div>
 
                 <?php if (session()->getFlashdata('error')): ?>

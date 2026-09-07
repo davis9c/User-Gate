@@ -86,6 +86,8 @@ FLUSH PRIVILEGES;
 ```
 
 Privilege tersebut diperlukan untuk menjalankan migration dan menyimpan data aplikasi. User aplikasi tidak perlu diberi `GRANT OPTION` atau privilege global pada `*.*`.
+UserGate tidak membuat database secara otomatis menggunakan user aplikasi. Database harus
+sudah dibuat administrator sebelum halaman setup digunakan.
 
 ## 5. Memeriksa user dan privilege
 
@@ -131,6 +133,10 @@ App/.env
 ```
 
 Kedua file harus menggunakan koneksi database yang sama jika menjalankan server database yang sama.
+
+Jika aplikasi berjalan di Docker dan MySQL berjalan pada host Windows atau macOS, gunakan
+`host.docker.internal` sebagai `database.default.hostname`, bukan `localhost`. Untuk database
+di server lain, gunakan hostname atau alamat IP server tersebut.
 
 ## Catatan keamanan
 

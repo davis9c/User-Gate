@@ -40,6 +40,7 @@ class Filters extends BaseFilters
         'accessToken' => \App\Filters\AccessTokenAuth::class,
         'loginThrottle' => \App\Filters\LoginThrottle::class,
         'userPermission' => \App\Filters\UserPermissionFilter::class,
+        'databaseSetup' => \App\Filters\DatabaseSetup::class,
     ];
 
     /**
@@ -79,16 +80,17 @@ class Filters extends BaseFilters
     public array $globals = [
         'before' => [
             // 'honeypot',
-             'csrf' => [
+            'csrf' => [
                 'except' => [
                     'api/v1/*',
                 ],
             ],
+            'databaseSetup',
             // 'invalidchars',
         ],
         'after' => [
             // 'honeypot',
-                 'secureheaders',
+            'secureheaders',
         ],
     ];
 

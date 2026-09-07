@@ -93,6 +93,11 @@ database, dan privilege ada di [Database README](../Database/README.md):
 nc -vz <database-host> 3306
 ```
 
+Jangan gunakan `localhost` jika database berjalan di luar container. Untuk MySQL
+di host Windows atau macOS, gunakan `host.docker.internal`; untuk server lain,
+gunakan hostname atau alamat IP server database. Database harus dibuat terlebih
+dahulu oleh administrator; halaman `/setup` hanya menjalankan migration dan seeder.
+
 ## 4. Validasi konfigurasi
 
 Sebelum build, validasi hasil konfigurasi Compose:
