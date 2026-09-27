@@ -32,6 +32,11 @@ $routes->group(
             '/',
             'Users::index'
         );
+        // Data tabel (server-side DataTables)
+        $routes->get(
+            'data',
+            'Users::data'
+        );
         // Create
         $routes->get(
             'create',
@@ -58,6 +63,15 @@ $routes->group(
         $routes->post(
             'reset-password/(:segment)',
             'Users::updatePassword/$1'
+        );
+        // Grant / revoke role
+        $routes->get(
+            'role/(:segment)',
+            'Users::role/$1'
+        );
+        $routes->post(
+            'assign-role/(:segment)',
+            'Users::assignRole/$1'
         );
     }
 );
@@ -97,6 +111,11 @@ $routes->group(
             '/',
             'Applications::index'
         );
+        // Data tabel (server-side DataTables)
+        $routes->get(
+            'data',
+            'Applications::data'
+        );
         $routes->get(
             'create',
             'Applications::new'
@@ -117,6 +136,10 @@ $routes->group(
         $routes->get(
             '(:segment)/api-keys',
             'ApiKeys::index/$1'
+        );
+        $routes->get(
+            '(:segment)/api-keys/data',
+            'ApiKeys::data/$1'
         );
         $routes->get(
             '(:segment)/api-keys/create',

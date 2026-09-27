@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\ApiPermission;
 use App\Models\ApiKey;
+use App\Models\Application;
 
 class ApiPermissions extends BaseController
 {
@@ -39,9 +40,24 @@ class ApiPermissions extends BaseController
 
         $assignedIds = array_column($assigned, 'permission_id');
 
+        // Dipakai untuk link "Cancel" kembali ke daftar API Keys.
+        $application = (new Application())->find($apiKey['application_id']);
+
+        // Diminta dari modal: kirim form-nya saja, tanpa chrome halaman.
+        if ($this->request->isAJAX()) {
+            return $this->response->setBody(
+                view('partials/forms/api_permissions', [
+                    'apiKey'      => $apiKey,
+                    'permissions' => $permissions,
+                    'assignedIds' => $assignedIds,
+                ])
+            );
+        }
+
         return view('api_permissions/index', [
             'title'       => 'API Permissions',
             'apiKey'      => $apiKey,
+            'application' => $application,
             'permissions' => $permissions,
             'assignedIds' => $assignedIds,
         ]);

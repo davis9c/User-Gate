@@ -30,6 +30,11 @@ class ApiPermissionSeeder extends Seeder
                 'description' => 'Menghapus user melalui UserGateway.',
             ],
             [
+                'name'        => 'Assign User Role',
+                'code'        => 'user.assign_role',
+                'description' => 'Memberikan atau mencabut role (termasuk SUPER_ADMIN) ke user.',
+            ],
+            [
                 'name'        => 'Read Application',
                 'code'        => 'application.read',
                 'description' => 'Melihat aplikasi yang terdaftar.',

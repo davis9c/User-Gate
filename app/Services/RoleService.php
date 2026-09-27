@@ -67,6 +67,45 @@ class RoleService
         return true;
     }
 
+    /**
+     * Cabut role dari user. Aman dipanggil berulang (idempoten).
+     */
+    public function revokeFromUser(string $userId, int $roleId): bool
+    {
+        $this->userRoleModel
+            ->where('user_id', $userId)
+            ->where('role_id', $roleId)
+            ->delete();
+
+        return true;
+    }
+
+    /**
+     * Apakah user punya role dengan kode tertentu?
+     */
+    public function hasRole(string $userId, string $roleCode): bool
+    {
+        return $this->userRoleModel
+            ->select('user_roles.id')
+            ->join('roles', 'roles.id = user_roles.role_id')
+            ->where('user_roles.user_id', $userId)
+            ->where('roles.code', $roleCode)
+            ->first() !== null;
+    }
+
+    /**
+     * Jumlah user yang masih memegang role dengan kode tertentu.
+     * Dipakai untuk mencegah SUPER_ADMIN terakhir kehilangan akses.
+     */
+    public function countUsersWithRole(string $roleCode): int
+    {
+        return $this->userRoleModel
+            ->select('user_roles.id')
+            ->join('roles', 'roles.id = user_roles.role_id')
+            ->where('roles.code', $roleCode)
+            ->countAllResults();
+    }
+
     public function getUserRole(string $userId): ?array
     {
         return $this->userRoleModel

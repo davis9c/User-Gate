@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: usergate-app
     volumes:
       - ./.env:/var/www/html/.env:ro
     ports:
