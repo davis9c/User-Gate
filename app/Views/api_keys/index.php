@@ -182,6 +182,74 @@
     </div>
 
 </div>
+
+<?php
+
+/**
+ * Modal hasil pembuatan API Key.
+ *
+ * Isinya diisi lewat JavaScript (input.value = ...) dari JSON yang dikirim
+ * ApiKeys::store, bukan lewat esc() — key-nya disalin ke clipboard, bukan
+ * ditampilkan sebagai HTML. Setelah modal ditutup, key dibersihkan dari DOM
+ * supaya tidak tertinggal di DOM halaman.
+ */
+?>
+<div class="modal fade" id="modalApiKeyResult" tabindex="-1" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">API Key Created</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="alert alert-warning mb-3">
+                    <strong>Important!</strong>
+                    API Key ini hanya ditampilkan sekali. Simpan dengan aman —
+                    setelah modal ini ditutup, API Key asli tidak dapat
+                    ditampilkan kembali.
+                </div>
+
+                <label for="resultApiKey" class="form-label">
+                    API Key
+                </label>
+
+                <div class="input-group">
+                    <input
+                        type="text"
+                        class="form-control font-monospace"
+                        id="resultApiKey"
+                        readonly
+                        autocomplete="off"
+                        spellcheck="false">
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        id="resultApiKeyCopy">
+                        Copy to Clipboard
+                    </button>
+                </div>
+
+                <div id="resultApiKeyMessage" class="text-success small mt-2" hidden>
+                    API Key berhasil disalin.
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    Selesai
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</div>
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
@@ -190,7 +258,7 @@
     var toggleBase = '<?= site_url('dashboard/api-keys/toggle') ?>';
     var permsBase = '<?= site_url('dashboard/api-keys') ?>';
 
-    initServerSideTable('#tblApiKeys', {
+    var keysTable = initServerSideTable('#tblApiKeys', {
         ajax: '<?= site_url('dashboard/applications/' . $application['id'] . '/api-keys/data') ?>',
         columns: [
             {
@@ -242,8 +310,76 @@
         ]
     });
 
-    initModalForm('#modalApiKeyCreate');
+    var resultModalEl = document.getElementById('modalApiKeyResult');
+    var resultInput = document.getElementById('resultApiKey');
+    var resultMessage = document.getElementById('resultApiKeyMessage');
+    var resultCopyBtn = document.getElementById('resultApiKeyCopy');
+
+    /**
+     * Sukses create API Key.
+     *
+     * Hasilnya hanya ada sekali, jadi halaman tidak boleh di-reload — key-nya
+     * tinggal di hash() di database. Token CSRF ikut disamakan karena
+     * Security::$regenerate = true: setiap POST memutar token, sedangkan
+     * halaman ini tidak di-reload, jadi form toggle / permissions di bawah
+     * akan memegang token lama kalau tidak di-update di sini.
+     */
+    var showApiKeyResult = function (data, modal, form) {
+        applyCsrfToken(data.csrfToken);
+
+        // Form create dikosongkan supaya user bisa langsung membuat key
+        // berikutnya tanpa mengetik ulang nama.
+        if (form) {
+            form.reset();
+        }
+
+        resultInput.value = data.apiKey;
+        resultMessage.hidden = true;
+        resultCopyBtn.textContent = 'Copy to Clipboard';
+
+        // Nama key ikut ditampilkan supaya user bisa memastikan key mana
+        // yang sedang disalin.
+        resultModalEl.querySelector('.modal-title').textContent =
+            'API Key Created - ' + data.name;
+
+        // Tutup modal create dulu: dua modal Bootstrap yang tumpang tindih
+        // bikin focus dan scrollbars behaving aneh. Tunggu animasi hide
+        // selesai sebelum membuka modal berikutnya — Bootstrap mengunci
+        // overflow body per modal, jadi membuka yang kedua di tengah
+        // transisi menyisakan scrollbar yang tidak kembali normal.
+        var createModalEl = document.getElementById('modalApiKeyCreate');
+        var createModal = bootstrap.Modal.getInstance(createModalEl);
+        var openResult = function () {
+            bootstrap.Modal.getOrCreateInstance(resultModalEl).show();
+        };
+
+        if (createModal) {
+            createModalEl.addEventListener('hidden.bs.modal', openResult, { once: true });
+            createModal.hide();
+
+            return;
+        }
+
+        openResult();
+    };
+
+    initModalForm('#modalApiKeyCreate', { onSuccess: showApiKeyResult });
     initModalForm('#modalPermissions');
+
+    resultCopyBtn.addEventListener('click', function () {
+        copyToClipboard(resultInput.value, resultMessage, resultCopyBtn);
+    });
+
+    resultModalEl.addEventListener('hidden.bs.modal', function () {
+        // Jangan biarkan secret nyangkut di DOM setelah modal ditutup.
+        resultInput.value = '';
+
+        // Gambar ulang tabel supaya key baru langsung kelihatan, tanpa
+        // reload — filter, pencarian, dan pagination tetap utuh.
+        if (keysTable) {
+            keysTable.draw();
+        }
+    });
 
     var toggleModal = document.getElementById('modalToggleKey');
     var toggleForm = document.getElementById('fToggleKey');

@@ -148,16 +148,42 @@ class ApiKeys extends BaseController
 
         $prefix = substr($plainKey, 0, 16);
 
+        $name = trim($this->request->getPost('name'));
+
         $model = new ApiKey();
 
         $model->insert([
             'id'             => $this->generateUuid(),
             'application_id' => $applicationId,
-            'name'           => trim($this->request->getPost('name')),
+            'name'           => $name,
             'key_hash'       => hash('sha256', $plainKey),
             'key_prefix'     => $prefix,
             'status'         => 'ACTIVE',
         ]);
+
+        /*
+         * Diminta dari modal: balas JSON supaya JavaScript bisa membuka
+         * modal "API Key tersimpan".
+         *
+         * Halaman penuh show_key.php tidak boleh dipakai di sini — requestnya
+         * AJAX, jadi submitModalForm() akan membuang respons itu (kecuali 422)
+         * dan reload halaman. Akibatnya key-nya tidak pernah terlihat padahal
+         * hanya hash-nya yang tersimpan, jadi key aslinya hilang selamanya.
+         *
+         * csrfToken ikut dikirim karena Security::$regenerate = true: setiap
+         * POST memutar token, dan halaman tidak di-reload pada jalur ini, jadi
+         * form lain di halaman (toggle, permissions) akan memegang token lama.
+         */
+        if ($this->request->isAJAX()) {
+            return $this->response
+                ->setStatusCode(201)
+                ->setJSON([
+                    'apiKey'    => $plainKey,
+                    'name'      => $name,
+                    'keyPrefix' => $prefix,
+                    'csrfToken' => csrf_hash(),
+                ]);
+        }
 
         return view('api_keys/show_key', [
             'title'       => 'API Key Created',

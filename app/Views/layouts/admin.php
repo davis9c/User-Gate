@@ -377,15 +377,22 @@ $navItem = static function (string $path, bool $exact = false) use ($currentPath
          * Submit memakai fetch:
          *   - 422 + HTML form  -> isi modal diganti dengan form yang sudah
          *                         dirender ulang (nilai input ikut terisi)
+         *   - sukses + options.onSuccess -> handler itu dipanggil dengan JSON
+         *                         dari server, tanpa reload halaman
          *   - selain itu        -> reload halaman supaya tabel & flashdata success
          *                         ikut ter-update
+         *
+         * options.onSuccess dipakai untuk hasil yang hanya boleh dilihat satu
+         * kali, misalnya API Key — kalau responsnya dibuang lalu halaman di
+         * reload, nilainya hilang selamanya karena yang tersimpan di database
+         * hanya hash-nya.
          *
          * redirect:'manual' dipakai supaya redirect dari controller tidak
          * diikuti fetch. Kalau diikuti, flashdata 'success' akan habis
          * dikonsumsi halaman yang di-fetch dan reload berikutnya tidak
          * menampilkan alert-nya.
          */
-        window.initModalForm = function (modalSelector) {
+        window.initModalForm = function (modalSelector, options) {
             var modal = document.querySelector(modalSelector);
 
             if (!modal) {
@@ -398,6 +405,8 @@ $navItem = static function (string $path, bool $exact = false) use ($currentPath
                 return;
             }
 
+            options = options || {};
+
             // Delegasi: bekerja untuk form yang sudah ada (create) maupun
             // form yang baru disisipkan lewat fetch (edit / reset).
             formWrap.addEventListener('submit', function (event) {
@@ -408,12 +417,14 @@ $navItem = static function (string $path, bool $exact = false) use ($currentPath
                 }
 
                 event.preventDefault();
-                submitModalForm(form, modal);
+                submitModalForm(form, modal, options);
             });
         };
 
-        window.submitModalForm = function (form, modal) {
+        window.submitModalForm = function (form, modal, options) {
             var submitBtn = modal.querySelector('[data-modal-submit]');
+
+            options = options || {};
 
             if (submitBtn) {
                 submitBtn.disabled = true;
@@ -439,6 +450,20 @@ $navItem = static function (string $path, bool $exact = false) use ($currentPath
                         });
                     }
 
+                    if (options.onSuccess) {
+                        // Penangan kedua pada .then() di bawah hanya untuk
+                        // JSON rusak / server membalas non-JSON — tetap surut
+                        // ke submit native supaya tidak menggantung.
+                        return response.json().then(
+                            function (data) {
+                                return { success: data };
+                            },
+                            function () {
+                                return { fallback: true };
+                            }
+                        );
+                    }
+
                     return { reload: true };
                 })
                 .catch(function () {
@@ -459,11 +484,18 @@ $navItem = static function (string $path, bool $exact = false) use ($currentPath
                         return;
                     }
 
-                    replaceModalForm(modal, result.html);
-
+                    // Halaman tidak di-reload pada jalur sukses, jadi tombol
+                    // harus di-enable lagi supaya form bisa dikirim ulang.
                     if (submitBtn) {
                         submitBtn.disabled = false;
                     }
+
+                    if (result.success) {
+                        options.onSuccess(result.success, modal, form);
+                        return;
+                    }
+
+                    replaceModalForm(modal, result.html);
                 });
         };
 
@@ -492,28 +524,34 @@ $navItem = static function (string $path, bool $exact = false) use ($currentPath
 
         /**
          * Config Security.php memakai regenerate = true, jadi setiap POST
-         *.rotate token CSRF. Karena halaman tidak di-reload saat 422, form
-         * lain di halaman ini (mis. modal konfirmasi toggle) akan memegang
-         * token lama dan submit berikutnya ditolak. Samakan semua token dengan
-         * yang baru saja came dari server.
+         * memutar token CSRF. Karena halaman tidak di-reload saat 422 maupun
+         * saat sukses lewat options.onSuccess, form lain di halaman ini (mis.
+         * modal konfirmasi toggle) akan memegang token lama dan submit
+         * berikutnya ditolak. Samakan semua token dengan yang baru saja
+         * datang dari server.
          *
          * 'csrf_test_name' mengikuti Security.php::$tokenName.
          */
+        window.applyCsrfToken = function (value) {
+            if (!value) {
+                return;
+            }
+
+            document.querySelectorAll('input[name="csrf_test_name"]').forEach(function (input) {
+                input.value = value;
+            });
+        };
+
         window.syncCsrfToken = function (sourceNode) {
-            var name = 'csrf_test_name';
             var source = sourceNode && sourceNode.querySelector
-                ? sourceNode.querySelector('input[name="' + name + '"]')
+                ? sourceNode.querySelector('input[name="csrf_test_name"]')
                 : null;
 
             if (!source) {
                 return;
             }
 
-            var fresh = source.value;
-
-            document.querySelectorAll('input[name="' + name + '"]').forEach(function (input) {
-                input.value = fresh;
-            });
+            applyCsrfToken(source.value);
         };
 
         /**
@@ -600,6 +638,95 @@ $navItem = static function (string $path, bool $exact = false) use ($currentPath
                 .catch(function () {
                     slot.innerHTML = '<div class="modal-body text-danger">Gagal memuat form.</div>';
                 });
+        };
+
+        /**
+         * Salin teks ke clipboard lalu tampilkan feedback singkat.
+         *
+         * Clipboard API butuh konteks secure (https / localhost) dan izin
+         * clipboard, jadi fallback-nya pakai elemen textarea sementara —
+         *_execCommand_ deprecated tapi masih satu-satunya cara di http://.
+         *
+         * Dipakai oleh halaman show_key.php dan modal API Key hasil create.
+         */
+        window.copyToClipboard = function (text, feedbackEl, buttonEl) {
+            var fallback = function () {
+                var temp = document.createElement('textarea');
+
+                temp.value = text;
+                temp.setAttribute('readonly', '');
+                temp.style.position = 'fixed';
+                temp.style.opacity = '0';
+
+                document.body.appendChild(temp);
+                temp.select();
+
+                var ok = false;
+
+                try {
+                    ok = document.execCommand('copy');
+                } catch (error) {
+                    ok = false;
+                }
+
+                document.body.removeChild(temp);
+
+                return ok;
+            };
+
+            var onCopied = function () {
+                if (buttonEl) {
+                    // Label asli disimpan sekali, jadi klik kedua dalam 3
+                    // detik tidak ikut menyimpan 'Tersalin!' sebagai asli.
+                    if (! buttonEl.dataset.copyLabel) {
+                        buttonEl.dataset.copyLabel = buttonEl.textContent;
+                    }
+
+                    buttonEl.textContent = 'Tersalin!';
+                }
+
+                if (feedbackEl) {
+                    feedbackEl.hidden = false;
+                }
+
+                // Timer sebelumnya dibuang dulu — kalau tidak, timer lama
+                // bisa menyembunyikan feedback dari klik yang lebih baru.
+                window.clearTimeout(window.__copyFeedbackTimer);
+
+                window.__copyFeedbackTimer = window.setTimeout(function () {
+                    if (buttonEl && buttonEl.dataset.copyLabel) {
+                        buttonEl.textContent = buttonEl.dataset.copyLabel;
+                    }
+
+                    if (feedbackEl) {
+                        feedbackEl.hidden = true;
+                    }
+                }, 3000);
+            };
+
+            var onFailed = function () {
+                window.alert('Gagal menyalin. Salin manual dari kolom di atas.');
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(onCopied, function () {
+                    if (fallback()) {
+                        onCopied();
+                        return;
+                    }
+
+                    onFailed();
+                });
+
+                return;
+            }
+
+            if (fallback()) {
+                onCopied();
+                return;
+            }
+
+            onFailed();
         };
     </script>
 

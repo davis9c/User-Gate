@@ -50,7 +50,7 @@
         <div
             id="copyMessage"
             class="text-success small mb-3"
-            style="display: none;">
+            hidden>
             API Key berhasil disalin.
         </div>
 
@@ -61,31 +61,21 @@
         </a>
 
     </div>
-    <script>
-        document.getElementById('copyApiKey').addEventListener('click', function() {
-
-            const apiKey = document.getElementById('apiKey').value;
-            const message = document.getElementById('copyMessage');
-
-            navigator.clipboard.writeText(apiKey)
-                .then(function() {
-
-                    message.style.display = 'block';
-
-                    setTimeout(function() {
-                        message.style.display = 'none';
-                    }, 3000);
-
-                })
-                .catch(function() {
-
-                    alert('Gagal menyalin API Key.');
-
-                });
-
-        });
-    </script>
 
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+    // Logika copy-nya dipakai bersama dengan modal hasil create, lihat
+    // copyToClipboard() di layout admin.
+    document.getElementById('copyApiKey').addEventListener('click', function () {
+        copyToClipboard(
+            document.getElementById('apiKey').value,
+            document.getElementById('copyMessage'),
+            this
+        );
+    });
+</script>
 <?= $this->endSection() ?>
