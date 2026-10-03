@@ -36,7 +36,7 @@
              di sini, supaya tabel tetap ringan untuk data yang banyak. -->
         <table id="tblUsers" class="table table-hover align-middle w-100">
 
-            <thead class="table-light">
+            <thead>
                 <tr>
                     <th>Nama</th>
                     <th>Username</th>

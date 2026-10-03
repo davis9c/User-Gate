@@ -6,13 +6,19 @@
 
     <title>Login - UserGateway</title>
 
+    <?= view('partials/theme/head') ?>
+
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet"
     >
 </head>
 
-<body class="bg-light">
+<body class="bg-body">
+
+<div class="position-fixed top-0 end-0 p-3">
+    <?= view('partials/theme/toggle') ?>
+</div>
 
 <div class="container min-vh-100 d-flex align-items-center justify-content-center">
 
@@ -87,6 +93,8 @@
     </div>
 
 </div>
+
+<?= view('partials/theme/script') ?>
 
 </body>
 </html>

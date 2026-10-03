@@ -7,11 +7,67 @@
 
     <title><?= esc($title) ?></title>
 
+    <?= view('partials/theme/head') ?>
+
     <meta
         name="description"
         content="UserGate is a centralized User Management, RBAC, Application and API Key Management platform.">
 
     <style>
+        /**
+         * Token warna.
+         *
+         * Nilai warna tidak ditulis langsung di tiap aturan; semuanya
+         * memakai var() supaya halaman ini bisa mengikuti mode gelap.
+         * Nilai gelapnya diletakkan di [data-bs-theme="dark"] — atribut yang
+         * sama dengan yang dipasang partials/theme/head.php.
+         */
+        :root {
+            --ug-bg: #f8fafc;
+            --ug-surface: #ffffff;
+            --ug-surface-alt: #f9fafb;
+            --ug-border: #e5e7eb;
+            --ug-border-strong: #d1d5db;
+            --ug-text: #111827;
+            --ug-text-soft: #172033;
+            --ug-muted: #6b7280;
+            --ug-brand: #4f46e5;
+            --ug-brand-soft: #eef2ff;
+            --ug-inverse: #111827;
+            --ug-inverse-hover: #1f2937;
+            --ug-inverse-text: #ffffff;
+            --ug-on-inverse: #d1d5db;
+            --ug-section-dark: #111827;
+            --ug-code-bg: #030712;
+            --ug-code-border: #374151;
+            --ug-code-key: #93c5fd;
+            --ug-code-value: #86efac;
+        }
+
+        [data-bs-theme="dark"] {
+            --ug-bg: #0b1120;
+            --ug-surface: #111827;
+            --ug-surface-alt: #161f31;
+            --ug-border: #1f2937;
+            --ug-border-strong: #374151;
+            --ug-text: #f3f4f6;
+            --ug-text-soft: #e5e7eb;
+            --ug-muted: #9ca3af;
+            --ug-brand: #818cf8;
+            --ug-brand-soft: #1e1b4b;
+            --ug-inverse: #f3f4f6;
+            --ug-inverse-hover: #e5e7eb;
+            --ug-inverse-text: #111827;
+            --ug-on-inverse: #9ca3af;
+            /* Section API tetap gelap, tapi sedikit lebih menyatu dengan
+               latar halaman supaya tidak terlihat seperti blok asing. */
+            --ug-section-dark: #0f172a;
+            --ug-code-bg: #020617;
+            --ug-code-border: #1f2937;
+            --ug-code-key: #93c5fd;
+            --ug-code-value: #86efac;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -25,8 +81,8 @@
                 BlinkMacSystemFont,
                 "Segoe UI",
                 sans-serif;
-            color: #172033;
-            background: #f8fafc;
+            color: var(--ug-text-soft);
+            background: var(--ug-bg);
             line-height: 1.6;
         }
 
@@ -42,8 +98,8 @@
         /* Navbar */
 
         .navbar {
-            background: #ffffff;
-            border-bottom: 1px solid #e5e7eb;
+            background: var(--ug-surface);
+            border-bottom: 1px solid var(--ug-border);
         }
 
         .nav-inner {
@@ -57,7 +113,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: #111827;
+            color: var(--ug-text);
             font-size: 21px;
             font-weight: 700;
         }
@@ -69,8 +125,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #111827;
-            color: #ffffff;
+            background: var(--ug-inverse);
+            color: var(--ug-inverse-text);
             font-weight: 700;
         }
 
@@ -81,13 +137,13 @@
         }
 
         .nav-links a {
-            color: #4b5563;
+            color: var(--ug-muted);
             font-size: 14px;
             font-weight: 500;
         }
 
         .nav-links a:hover {
-            color: #111827;
+            color: var(--ug-text);
         }
 
         .btn {
@@ -102,29 +158,29 @@
         }
 
         .btn-primary {
-            color: #ffffff !important;
-            background: #111827;
+            color: var(--ug-inverse-text) !important;
+            background: var(--ug-inverse);
         }
 
         .btn-primary:hover {
-            background: #1f2937;
+            background: var(--ug-inverse-hover);
         }
 
         .btn-secondary {
-            color: #111827;
-            background: #ffffff;
-            border: 1px solid #d1d5db;
+            color: var(--ug-text);
+            background: var(--ug-surface);
+            border: 1px solid var(--ug-border-strong);
         }
 
         .btn-secondary:hover {
-            background: #f3f4f6;
+            background: var(--ug-surface-alt);
         }
 
         /* Hero */
 
         .hero {
             padding: 96px 0 88px;
-            background: #ffffff;
+            background: var(--ug-surface);
         }
 
         .hero-content {
@@ -138,10 +194,10 @@
             align-items: center;
             padding: 6px 12px;
             margin-bottom: 22px;
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--ug-border);
             border-radius: 999px;
-            color: #4b5563;
-            background: #f9fafb;
+            color: var(--ug-muted);
+            background: var(--ug-surface-alt);
             font-size: 13px;
             font-weight: 600;
         }
@@ -150,18 +206,18 @@
             font-size: clamp(42px, 6vw, 68px);
             line-height: 1.08;
             letter-spacing: -2px;
-            color: #111827;
+            color: var(--ug-text);
             margin-bottom: 24px;
         }
 
         .hero h1 span {
-            color: #4f46e5;
+            color: var(--ug-brand);
         }
 
         .hero p {
             max-width: 680px;
             margin: 0 auto 32px;
-            color: #6b7280;
+            color: var(--ug-muted);
             font-size: 18px;
         }
 
@@ -185,13 +241,13 @@
         }
 
         .section-heading h2 {
-            color: #111827;
+            color: var(--ug-text);
             font-size: 34px;
             margin-bottom: 12px;
         }
 
         .section-heading p {
-            color: #6b7280;
+            color: var(--ug-muted);
         }
 
         .feature-grid {
@@ -202,8 +258,8 @@
 
         .feature {
             padding: 28px;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
+            background: var(--ug-surface);
+            border: 1px solid var(--ug-border);
             border-radius: 14px;
         }
 
@@ -215,19 +271,19 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #eef2ff;
-            color: #4f46e5;
+            background: var(--ug-brand-soft);
+            color: var(--ug-brand);
             font-weight: 700;
         }
 
         .feature h3 {
             margin-bottom: 8px;
-            color: #111827;
+            color: var(--ug-text);
             font-size: 18px;
         }
 
         .feature p {
-            color: #6b7280;
+            color: var(--ug-muted);
             font-size: 14px;
         }
 
@@ -235,7 +291,7 @@
 
         .api-section {
             padding: 80px 0;
-            background: #111827;
+            background: var(--ug-section-dark);
             color: #ffffff;
         }
 
@@ -253,17 +309,17 @@
         }
 
         .api-content p {
-            color: #d1d5db;
+            color: var(--ug-on-inverse);
             margin-bottom: 24px;
         }
 
         .code-block {
             padding: 24px;
             overflow-x: auto;
-            border: 1px solid #374151;
+            border: 1px solid var(--ug-code-border);
             border-radius: 12px;
-            background: #030712;
-            color: #d1d5db;
+            background: var(--ug-code-bg);
+            color: var(--ug-on-inverse);
             font-family: "SFMono-Regular", Consolas, monospace;
             font-size: 13px;
         }
@@ -280,8 +336,8 @@
 
         footer {
             padding: 28px 0;
-            background: #ffffff;
-            border-top: 1px solid #e5e7eb;
+            background: var(--ug-surface);
+            border-top: 1px solid var(--ug-border);
         }
 
         .footer-inner {
@@ -292,7 +348,7 @@
         }
 
         .footer-inner p {
-            color: #6b7280;
+            color: var(--ug-muted);
             font-size: 13px;
         }
 
@@ -335,6 +391,7 @@
                 <a href="#features">Features</a>
                 <a href="#api">API</a>
                 <a href="https://github.com/davis9c/User-Gate/tree/main/docs" target="_blank">Documentation</a>
+                <?= view('partials/theme/toggle') ?>
                 <a href="/login" class="btn btn-primary">Login</a>
             </div>
 
@@ -537,6 +594,8 @@
 
         </div>
     </footer>
+
+<?= view('partials/theme/script') ?>
 
 </body>
 

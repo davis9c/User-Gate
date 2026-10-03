@@ -40,7 +40,7 @@
         <!-- Baris tabel diisi lewat server-side (Applications::data). -->
         <table id="tblApplications" class="table table-hover align-middle w-100">
 
-            <thead class="table-light">
+            <thead>
                 <tr>
                     <th>Application</th>
                     <th>Code</th>

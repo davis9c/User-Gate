@@ -45,7 +45,7 @@
         <!-- Baris tabel diisi lewat server-side (ApiKeys::data). -->
         <table id="tblApiKeys" class="table table-hover align-middle w-100">
 
-            <thead class="table-light">
+            <thead>
 
                 <tr>
                     <th>Name</th>

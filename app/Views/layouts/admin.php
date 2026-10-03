@@ -7,6 +7,8 @@
 
     <title><?= esc($title ?? 'UserGateway') ?></title>
 
+    <?= view('partials/theme/head') ?>
+
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet">
@@ -16,12 +18,18 @@
         rel="stylesheet">
 </head>
 
-<body class="bg-light">
+<!-- bg-body, bukan bg-light: bg-light adalah abu-abu terang literal yang
+     tidak berubah di mode gelap, jadi background halaman tetap terang. -->
+<body class="bg-body">
 
 <?php
 
 /**
  * Menandai menu navbar yang sedang aktif.
+ *
+ * Fungsi ini mengembalikan string atribut siap pakai untuk <a>, sekaligus
+ * aria-current="page" — atribut itu diminta Bootstrap 5.3 supaya item menu
+ * yang sedang dibuka terbaca oleh screen reader.
  *
  * $exact = true  -> hanya cocok kalau path-nya sama persis (dipakai untuk
  *                   Dashboard, supaya tidak ikut aktif di /dashboard/users).
@@ -29,17 +37,29 @@
  */
 $currentPath = trim(service('uri')->getPath(), '/');
 
-$navItem = static function (string $path, bool $exact = false) use ($currentPath): string {
+$navAttrs = static function (string $path, bool $exact = false) use ($currentPath): string {
     $matched = $exact
         ? $currentPath === $path
         : ($currentPath === $path || str_starts_with($currentPath, $path . '/'));
 
-    return $matched ? ' active' : '';
+    return $matched
+        ? ' class="nav-link active" aria-current="page"'
+        : ' class="nav-link"';
 };
 
 ?>
 
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <!--
+        Navbar tetap gelap di kedua mode warna (pola GitHub), jadi color
+        mode-nya dikunci lewat data-bs-theme="dark" pada <nav> sendiri —
+        .navbar-dark sudah deprecated di Bootstrap v5.3.
+
+        Ini juga yang membuat dropdown user ikut gelap otomatis: .dropdown-menu
+        mengambil warna dari --bs-body-bg / --bs-body-color, bukan dari
+        --bs-navbar-*. Kelas .navbar-dark hanya menimpa variabel navbar,
+        sehingga dropdown-nya akan tetap terang di mode gelap.
+    -->
+    <nav class="navbar navbar-expand-lg bg-dark border-bottom" data-bs-theme="dark">
         <div class="container">
 
             <a href="<?= site_url('dashboard') ?>" class="navbar-brand">
@@ -59,27 +79,24 @@ $navItem = static function (string $path, bool $exact = false) use ($currentPath
 
             <div class="collapse navbar-collapse" id="navbarMain">
 
-                <ul class="navbar-nav me-auto">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
                     <li class="nav-item">
-                        <a
-                            class="nav-link<?= $navItem('dashboard', true) ?>"
+                        <a<?= $navAttrs('dashboard', true) ?>
                             href="<?= site_url('dashboard') ?>">
                             Dashboard
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a
-                            class="nav-link<?= $navItem('dashboard/users') ?>"
+                        <a<?= $navAttrs('dashboard/users') ?>
                             href="<?= site_url('dashboard/users') ?>">
                             Users
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a
-                            class="nav-link<?= $navItem('dashboard/applications') ?>"
+                        <a<?= $navAttrs('dashboard/applications') ?>
                             href="<?= site_url('dashboard/applications') ?>">
                             Applications
                         </a>
@@ -87,21 +104,42 @@ $navItem = static function (string $path, bool $exact = false) use ($currentPath
 
                 </ul>
 
-                <div class="d-flex align-items-center gap-3">
+                <ul class="navbar-nav align-items-lg-center gap-lg-3">
 
-                    <a
-                        href="<?= site_url('profile') ?>"
-                        class="text-white text-decoration-none">
-                        <?= esc(session()->get('full_name')) ?>
-                    </a>
+                    <li class="nav-item">
+                        <?= view('partials/theme/toggle', ['themeSize' => 'sm']) ?>
+                    </li>
 
-                    <a
-                        href="<?= site_url('logout') ?>"
-                        class="btn btn-outline-light btn-sm">
-                        Logout
-                    </a>
+                    <li class="nav-item dropdown">
+                        <a
+                            class="nav-link dropdown-toggle"
+                            href="#"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <?= esc(session()->get('full_name')) ?>
+                        </a>
 
-                </div>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a
+                                    class="dropdown-item"
+                                    href="<?= site_url('profile') ?>">
+                                    My Profile
+                                </a>
+                            </li>
+
+                            <li>
+                                <a
+                                    class="dropdown-item"
+                                    href="<?= site_url('logout') ?>">
+                                    Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                </ul>
 
             </div>
 
@@ -729,6 +767,8 @@ $navItem = static function (string $path, bool $exact = false) use ($currentPath
             onFailed();
         };
     </script>
+
+    <?= view('partials/theme/script') ?>
 
     <?= $this->renderSection('scripts') ?>
 
