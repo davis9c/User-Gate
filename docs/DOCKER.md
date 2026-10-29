@@ -59,6 +59,7 @@ CI_ENVIRONMENT = production
 APP_PORT = 8081
 app.baseURL = http://localhost:8081/
 app.forceGlobalSecureRequests = false
+COOKIE_SECURE = false
 database.default.hostname = <database-host>
 database.default.database = <database-name>
 database.default.username = <database-user>
@@ -71,10 +72,17 @@ Konfigurasi penting:
 
 - `APP_PORT`: port host yang dipakai untuk membuka aplikasi.
 - `app.baseURL`: URL publik aplikasi, wajib memakai trailing slash.
+- `COOKIE_SECURE`: `false` bila deployment sementara masih menerima HTTP. Saat
+  HTTPS sudah menjadi satu-satunya akses publik, gunakan
+  `app.forceGlobalSecureRequests = true` dan `COOKIE_SECURE = true`.
 - `database.default.hostname`: alamat server MySQL eksternal.
 - `database.default.port`: port MySQL, biasanya 3306.
 
 Pastikan server Docker dapat terhubung ke database. Jangan gunakan localhost jika database berjalan di luar container. Untuk MySQL di host Windows atau macOS, gunakan host.docker.internal.
+
+`TRUST_PROXY` tidak digunakan aplikasi. Jika berada di belakang reverse proxy,
+daftarkan hanya alamat IP proxy yang tepercaya pada `$proxyIPs` di
+`app/Config/App.php`; jangan percaya header `X-Forwarded-For` dari semua IP.
 
 ## 4. Build dan jalankan
 

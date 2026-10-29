@@ -11,6 +11,13 @@ CI_ENVIRONMENT = production
 app.baseURL = 'http://localhost:8081/'
 app.forceGlobalSecureRequests = false
 
+# Set false only while this deployment must accept HTTP. Set true after the
+# public site has moved fully to HTTPS.
+COOKIE_SECURE = false
+
+# TRUST_PROXY is not used by the application. Configure only known proxy IPs
+# in app/Config/App.php ($proxyIPs) when a reverse proxy is used.
+
 #--------------------------------------------------------------------
 # DATABASE
 #--------------------------------------------------------------------

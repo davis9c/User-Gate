@@ -57,6 +57,31 @@ class Cookie extends BaseConfig
     public bool $secure = ENVIRONMENT !== 'development';
 
     /**
+     * Allows deployments that temporarily serve HTTP and HTTPS to explicitly
+     * control the Secure attribute without changing the application mode.
+     *
+     * `COOKIE_SECURE` accepts true/false, 1/0, yes/no, or on/off. When it is
+     * not set, the existing safe default remains: cookies are secure outside
+     * development.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        $cookieSecure = env('COOKIE_SECURE');
+
+        if ($cookieSecure === null) {
+            return;
+        }
+
+        $parsedValue = filter_var($cookieSecure, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE);
+
+        if ($parsedValue !== null) {
+            $this->secure = $parsedValue;
+        }
+    }
+
+    /**
      * --------------------------------------------------------------------------
      * Cookie HTTPOnly
      * --------------------------------------------------------------------------
