@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: usergate-app
+    restart: unless-stopped
     volumes:
       - ./.env:/var/www/html/.env:ro
     ports:

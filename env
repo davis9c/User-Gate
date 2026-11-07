@@ -2,21 +2,57 @@
 # ENVIRONMENT
 #--------------------------------------------------------------------
 
+# ============================================================================
+# PRESET KONFIGURASI
+# ============================================================================
+# Pilih salah satu preset di bawah, lalu samakan nilai pada bagian
+# ENVIRONMENT dan APP. Bagian DATABASE tidak berubah untuk ketiga preset.
+#
+# --- PRESET 1: DEVELOPMENT (lokal, HTTP) ------------------------------------
+#   CI_ENVIRONMENT = development
+#   app.baseURL = 'http://localhost:8081/'
+#   app.forceGlobalSecureRequests = false
+#   COOKIE_SECURE = false
+#   # PROXY_IPS tidak diperlukan
+#
+# --- PRESET 2: PRODUCTION CLOUDFLARED (publik HTTPS, origin HTTP) ----------
+#   CI_ENVIRONMENT = production
+#   app.baseURL = 'https://usergate.sandalgurun.web.id/'
+#   app.forceGlobalSecureRequests = false
+#   COOKIE_SECURE = true
+#   PROXY_IPS = 10.10.10.15   # IP host yang menjalankan cloudflared
+#
+# --- PRESET 3: PRODUCTION JARINGAN LOKAL TANPA CLOUDFLARED (HTTP langsung) --
+#   CI_ENVIRONMENT = production
+#   app.baseURL = 'http://10.10.10.15:8081/'
+#   app.forceGlobalSecureRequests = false
+#   COOKIE_SECURE = false
+#   # PROXY_IPS tidak diperlukan
+# ============================================================================
+
+# Preset 1: development | Preset 2 & 3: production
 CI_ENVIRONMENT = production
 
 #--------------------------------------------------------------------
 # APP
 #--------------------------------------------------------------------
 
+# Preset 1: 'http://localhost:8081/'
+# Preset 2: 'https://usergate.sandalgurun.web.id/'
+# Preset 3: 'http://10.10.10.15:8081/' (ganti dengan IP server Anda)
 app.baseURL = 'http://localhost:8081/'
+
+# false untuk ketiga preset
 app.forceGlobalSecureRequests = false
 
-# Set false only while this deployment must accept HTTP. Set true after the
-# public site has moved fully to HTTPS.
+# Preset 1: false
+# Preset 2: true (cookie tetap Secure karena publik sudah HTTPS)
+# Preset 3: false (akses langsung via HTTP, cookie Secure tidak bisa dipakai)
 COOKIE_SECURE = false
 
-# TRUST_PROXY is not used by the application. Configure only known proxy IPs
-# in app/Config/App.php ($proxyIPs) when a reverse proxy is used.
+# Preset 1 & 3: kosongkan atau hapus baris ini
+# Preset 2: isi dengan IP host yang menjalankan cloudflared
+# PROXY_IPS = 10.10.10.15
 
 #--------------------------------------------------------------------
 # DATABASE

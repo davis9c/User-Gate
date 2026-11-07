@@ -178,9 +178,32 @@ class App extends BaseConfig
      *         '192.168.5.0/24' => 'X-Real-IP',
      *     ]
      *
+     * The list can be supplied at runtime through the `PROXY_IPS` environment
+     * variable as a comma-separated list of IP addresses or CIDR ranges, e.g.
+     * `PROXY_IPS = 10.0.1.200,172.20.0.0/16`.
+     *
      * @var array<string, string>
      */
     public array $proxyIPs = [];
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $proxyIPs = env('PROXY_IPS');
+
+        if (! is_string($proxyIPs) || trim($proxyIPs) === '') {
+            return;
+        }
+
+        foreach (explode(',', $proxyIPs) as $proxyIP) {
+            $proxyIP = trim($proxyIP);
+
+            if ($proxyIP !== '') {
+                $this->proxyIPs[$proxyIP] = 'X-Forwarded-For';
+            }
+        }
+    }
 
     /**
      * --------------------------------------------------------------------------

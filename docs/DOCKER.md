@@ -52,37 +52,38 @@ Buat file `.env` dari template:
 cp env .env
 ```
 
-Edit `.env` sesuai kebutuhan:
+Template `env` sudah memuat tiga preset konfigurasi. Pilih salah satu, lalu
+samakan nilai `CI_ENVIRONMENT`, `app.baseURL`, `COOKIE_SECURE`, dan
+`PROXY_IPS` pada `.env`:
 
-```text
-CI_ENVIRONMENT = production
-APP_PORT = 8081
-app.baseURL = http://localhost:8081/
-app.forceGlobalSecureRequests = false
-COOKIE_SECURE = false
-database.default.hostname = <database-host>
-database.default.database = <database-name>
-database.default.username = <database-user>
-database.default.password = <database-password>
-database.default.DBDriver = MySQLi
-database.default.port = 3306
-```
+| Preset | `CI_ENVIRONMENT` | `app.baseURL` | `COOKIE_SECURE` | `PROXY_IPS` |
+|---|---|---|---|---|
+| Development (lokal, HTTP) | `development` | `http://localhost:8081/` | `false` | kosong |
+| Production Cloudflared (publik HTTPS, origin HTTP) | `production` | `https://usergate.sandalgurun.web.id/` | `true` | IP host cloudflared, mis. `10.10.10.15` |
+| Production jaringan lokal tanpa Cloudflared (HTTP) | `production` | `http://<IP-SERVER>:8081/` | `false` | kosong |
+
+Sisanya (`APP_PORT` dan bagian `DATABASE`) diisi sesuai server.
 
 Konfigurasi penting:
 
 - `APP_PORT`: port host yang dipakai untuk membuka aplikasi.
 - `app.baseURL`: URL publik aplikasi, wajib memakai trailing slash.
-- `COOKIE_SECURE`: `false` bila deployment sementara masih menerima HTTP. Saat
-  HTTPS sudah menjadi satu-satunya akses publik, gunakan
-  `app.forceGlobalSecureRequests = true` dan `COOKIE_SECURE = true`.
+- `COOKIE_SECURE`: `true` untuk production (termasuk Cloudflared) agar cookie
+  sesi memakai atribut `Secure`. Gunakan `false` hanya bila aplikasi memang
+  diakses langsung melalui HTTP (development atau jaringan lokal).
+- `PROXY_IPS`: daftar alamat IP atau CIDR reverse proxy yang tepercaya,
+  dipisahkan koma. Wajib diisi pada preset Cloudflared agar header
+  `X-Forwarded-Proto: https` dipercaya dan cookie sesi `Secure` tidak ditolak
+  (error 500 "Attempted to send a secure cookie over a non-secure connection").
+  Isi dengan IP yang terlihat oleh container, misalnya IP host yang menjalankan
+  `cloudflared`. Kosongkan untuk preset development dan jaringan lokal.
 - `database.default.hostname`: alamat server MySQL eksternal.
 - `database.default.port`: port MySQL, biasanya 3306.
 
 Pastikan server Docker dapat terhubung ke database. Jangan gunakan localhost jika database berjalan di luar container. Untuk MySQL di host Windows atau macOS, gunakan host.docker.internal.
 
-`TRUST_PROXY` tidak digunakan aplikasi. Jika berada di belakang reverse proxy,
-daftarkan hanya alamat IP proxy yang tepercaya pada `$proxyIPs` di
-`app/Config/App.php`; jangan percaya header `X-Forwarded-For` dari semua IP.
+Jangan percaya header `X-Forwarded-For`/`X-Forwarded-Proto` dari semua IP.
+Daftarkan hanya alamat proxy yang benar-benar tepercaya melalui `PROXY_IPS`.
 
 ## 4. Build dan jalankan
 
